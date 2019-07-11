@@ -1,8 +1,5 @@
-(*
 open Devkit
 open ExtLib
-open Printf
-*)
 
 module Passwords = Pwned_passwords.Make(Pwned_passwords.Lwt)
 
@@ -68,4 +65,32 @@ let () =
     let man = [] in
     info "lookup" ~doc ~sdocs:Manpage.s_common_options ~exits ~man
   in
-  Term.(exit (eval_choice init [ lookup; ]))
+  let serve =
+    let serve min_prefix_size lookup prefix =
+      let prefix_size = String.length prefix in
+      match prefix_size >= min_prefix_size with
+      | false -> Lwt.return (`Body (`Bad_request, [], "range prefix is too short"))
+      | true ->
+      let%lwt hashes = lookup prefix in
+      List.map (fun hash -> String.slice ~first:prefix_size hash ^ "\n") hashes |>
+      String.concat "" |>
+      Httpev.Answer.text
+    in
+    let serve prefix_size lookup _server { Httpev.meth; path; _ } =
+      match meth, Stre.nsplitc path '/' with
+      | `GET, [ ""; "range"; prefix; ] -> serve prefix_size lookup prefix
+      | _, path -> Httpev.Answer.not_found (Printf.sprintf "not found : %s" (String.concat "*" path))
+    in
+    let serve filename =
+      Lwt_main.run @@
+      with_passwords filename @@ fun prefix_size lookup ->
+      Httpev.setup_lwt Httpev.default (serve prefix_size lookup)
+    in
+    let open Term in
+    const serve $ filename,
+    let doc = "serve password hashes interactively" in
+    let exits = default_exits in
+    let man = [] in
+    info "serve" ~doc ~sdocs:Manpage.s_common_options ~exits ~man
+  in
+  Term.(exit (eval_choice init [ lookup; serve; ]))
