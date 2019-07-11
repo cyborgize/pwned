@@ -72,8 +72,8 @@ let () =
       | false -> Lwt.return (`Body (`Bad_request, [], "range prefix is too short"))
       | true ->
       let%lwt hashes = lookup prefix in
-      List.map (fun hash -> String.slice ~first:prefix_size hash ^ "\n") hashes |>
-      String.concat "" |>
+      List.map (fun hash -> String.slice ~first:prefix_size hash) hashes |>
+      String.concat "\r\n" |>
       Httpev.Answer.text
     in
     let serve prefix_size lookup _server { Httpev.meth; path; _ } =
