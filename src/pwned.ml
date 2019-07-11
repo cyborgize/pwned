@@ -93,4 +93,4 @@ let () =
     let man = [] in
     info "serve" ~doc ~sdocs:Manpage.s_common_options ~exits ~man
   in
-  Term.(exit (eval_choice init [ lookup; serve; ]))
+  Term.(exit (eval_choice init [ init; lookup; serve; ]))

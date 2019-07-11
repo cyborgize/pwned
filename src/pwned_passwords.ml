@@ -105,8 +105,8 @@ module Make(IO : IO)(Storage : Storage with type 'a io = 'a IO.t) = struct
     let rec loop ~first ~last ~prefix nr acc =
       IO.read_line file >>= function
         | None ->
-          if period () then log #info "init_file prefix %s [%Ld;%Ld]" prefix first last;
-          IO.return (nr, (prefix, (first, last)) :: acc)
+          log #info "init_file prefix %s [%Ld;%Ld]" prefix first last;
+          IO.return (nr + 1, (prefix, (first, last)) :: acc)
         | Some line when String.starts_with line prefix ->
           IO.ftell file >>= fun last ->
           loop ~first ~last ~prefix nr acc
@@ -119,7 +119,7 @@ module Make(IO : IO)(Storage : Storage with type 'a io = 'a IO.t) = struct
     in
     loop ~first:0L ~last:0L ~prefix:first_range 0 [] >>= fun (nr_ranges, ranges') ->
     let ranges = Array.make nr_ranges ("", (0L, 0L)) in
-    List.iteri (fun i range -> Array.unsafe_set ranges (nr_ranges - i - 1) range) ranges';
+    List.iteri (fun i range -> ranges.(nr_ranges - i - 1) <- range) ranges';
     Storage.write (Marshal.to_string ranges []) >>= fun () ->
     IO.return { file; ranges; }
 
