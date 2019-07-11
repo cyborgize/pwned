@@ -142,11 +142,11 @@ module Make(IO : IO)(Storage : Storage with type 'a io = 'a IO.t) = struct
     let prefix = String.slice ~last:prefix_size prefix in
     let rec binary_search l r =
       let m = l + (r - l) / 2 in
-      let (prefix', range) = Array.unsafe_get ranges m in
+      let (prefix', range) = ranges.(m) in
       match l + 1 = r with
       | true -> range
       | false ->
-      match String.compare prefix' prefix with
+      match String.compare prefix prefix' with
       | x when x < 0 -> binary_search l m
       | x when x > 0 -> binary_search (m + 1) r
       | _ (* 0 *) -> range
