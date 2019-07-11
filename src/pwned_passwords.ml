@@ -95,7 +95,7 @@ module Make(IO : IO)(Storage : Storage with type 'a io = 'a IO.t) = struct
 
   let (>>=) = IO.(>>=)
 
-  let prefix_size = 4
+  let prefix_size = 5
 
   let first_range = String.make prefix_size '\000'
 
