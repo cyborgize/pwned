@@ -1,0 +1,5 @@
+(executable
+  (name pwned)
+  (public_name pwned)
+  (libraries cmdliner devkit extlib sha)
+  (preprocess (pps lwt_ppx)))
